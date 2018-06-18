@@ -1,25 +1,26 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
-var Nightmare = require('nightmare');
-// var logger = require('morgan');
+var logger = require('morgan');
 
 var PORT = process.env.PORT || 3000;
 
 //require all models
-var db = require('./models');
+var db = process.env.MONGODB_URI || 'mongodb://localhost/scrapeJSBooks' ;
+mongoose.connect(db, function(error){
+    if(error) console.log(error)
+    else console.log("mongoose connection is successful")
+})
 
-// //require nightmare function to scrape for JS Books
 // var nightmare = require('./public/scrapejs')
 
 //Initialize Express
 var app = express();
 //connect to MongoDB
-mongoose.connect('mongodb://localhost/scrapeJSBooks')
 
 //Configure middleware
 //Use morgan logger for logging requests
-// app.use( logger("dev") );
+app.use( logger("dev") );
 
 //Use body-parser for handling submissions/ POST
 app.use(bodyParser.urlencoded({

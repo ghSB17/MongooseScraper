@@ -22,9 +22,7 @@ module.exports = function (app, db) {
     })
 
     app.post("/book", function (req, res) {
-        const Book = require("../models/Book");
-
-        const jsBook = new Book(req.body);
+         const jsBook = new db.Book(req.body);
         jsBook.save(function (err, newJsBook) {
             if (err) return res.status(500).send(err);
             else return res.status(200).send(newJsBook);

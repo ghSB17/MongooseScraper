@@ -19,9 +19,11 @@
   "homepage": "https://github.com/ghSB17/MongooseScraper#readme",
   "dependencies": {
     "body-parser": "^1.18.3",
+    "cheerio": "^1.0.0-rc.2",
     "express": "^4.16.3",
     "express-handlebars": "^3.0.0",
     "mongoose": "^5.1.5",
-    "nightmare": "^3.0.1"
+    "nightmare": "^3.0.1",
+    "sync-request": "^6.0.0"
   }
 }
