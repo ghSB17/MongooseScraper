@@ -1,4 +1,6 @@
-module.exports = function (app, db) {
+var db = require("../models")
+
+module.exports = function (app) {
 
     app.get("/book/:title", function (req, res) {
 

@@ -1,114 +1,205 @@
-module.exports = function (app, db) {
 
-    app.get("/scrapeA", function (req, res) {
+var scrape = require("../scripts/scrape")
+var db = require("../models")
+module.exports = function (app) {
 
-        var Nightmare = require('nightmare');
-        console.log("In get function")
-        var nightmare = Nightmare({
-            show: true
-        });
-        var results = [];
-        
-        nightmare
-            //load a url
-            .goto('http://amazon.com')
-            //simulate typing into an element identified by a CSS selector
-            //here, Nightmare is typing into the search bar
-            .type('#twotabsearchtextbox', 'javascript')
-            .type('.searchSelect', 'Books')
+    app.get("/", function(req,res){
+        console.log("IN GET / ")
+        res.redirect("/all")
+    })
 
-            //click an element identified by a CSS selector
-            //in this case, click the search button
-            .click('input[type="Submit"]')
+    app.get("", function(req,res){
+        console.log("IN GET ")
+        res.redirect("/all");
+    })
 
-            //wait for an element identified by a CSS selector
-            //in this case, the body of the results
-            .wait('ul#s-results-list-atf')
-
-            //execute javascript on the page
-            //here, the function is getting book image, title, author and cost from search results
-            .evaluate(function () {
-                //Array to hold all the scraped JS book details
-
-                //this is the element containing all JS books in listItems
-                var listItems = document.getElementById("LI");
-
-                var lI = document.querySelectorAll("ul#s-results-list-atf > li")
-                for (var i = 0; i < lI.length; i++) {
-                    // to store each javascript book info as a document in the collection
-                    var imgSrc = lI[i].querySelector("img").getAttribute('src');
-                    var title = lI[i].querySelector("img").getAttribute('alt')
-                    var price =
-                        ((lI[i].querySelector(".sx-price-whole") == null) ? `$0` : `$${lI[i].querySelector(".sx-price-whole").innerHTML}`);
-                    var spans = lI[i].querySelectorAll(".a-color-secondary")
-                    var author = '';
-                    var p = ((spans[2] == null) ? "" : (spans[2].parentNode))
-
-                    //to retreive the author(s) names
-                    if (p != "") {
-
-                        var tc = p.children;
-                        for (var m = 1; m < p.children.length; m++) {
-                            if (p.children[m].children.length > 0)
-                                author += `${p.children[m].children[0].innerHTML} `
-                            else
-                                author += `${p.children[m].innerHTML} `;
+    app.get("/scrapeAn", function (req, res) {
+        console.log("In scrapeAN")
+        db.Book.find({}, function (err, documents) {
+            if(err) console.log(err)
+            var newData = []
+            console.log("whats in the docs?!!!")
+            console.log(documents);
+            console.log("WHATS in the docs")
+            scrape(function (data) {
+                var count = 0
+                if ( documents == undefined) {
+                    console.log("UNdefined")
+                    count=data.length
+                    newData=data
+                } else if (documents.length != 0) {
+                    console.log(`more than 0, ${documents.length}`)
+                    for (var i = 0; i < data.length; i++) {
+                        var flag = false
+                        for (j = 0; j < documents.length; j++) {
+                            if (documents[j].title == data[i].title)
+                                flag = true
+                        }
+                        if (!flag) {
+                            count++
+                            newData.push(data[i])
                         }
                     }
-                    results.push({
-                        title: title,
-                        author: author,
-                        imgSrc: imgSrc,
-                        price: price
+                    console.log(`found ${newData.length} new documents`)
+                }else {
+                    console.log(`the collections is empty---!!`)
+                    newData=data
+                    count=data.length
+                }
+                if(count>0){
+                    console.log(`how many in collection now!! --${count}`)
+                    db.Book.insertMany(newData).then(function(error,results){
+                        if(error) console.log(error)
+                        console.log(`insert NEW Docs`)
+                        res.redirect("/all");
                     })
-                    // db.Book.findOneAndUpdate({
-                    //     title: title,
-                    //     author: author,
-                    //     imgSrc: imgSrc,
-                    //     price: price
-                    // }, {
-                    //     upsert: true,
-                    //     returnNewDocument: true
-                    // }).then(function (newBook) {
-                    //     console.log(newBook)
-                    // }).catch(function (err) {
-                    //     console.log(err)
-                    // })
-
+                }else {
+                    console.log(`no new STUFF FOUND!!`)
+                    res.redirect("/all")
                 }
-                console.log(results);
-                return ("blahblah");
             })
-            .end()
-            //run the queue of commands specified
-            .run(function (error, result) {
-                if (error) {
-                    res.json(error);
+        })
+
+    })
+
+    app.get("/scrape", function (req, res) {
+        db.Book.find({}).then(function (errorR, bDocuments) {
+            var promises = [];
+            if (typeof bDocuments === undefined) {
+
+                scrape(function (data) {
+
+                    db.Book.insertMany(data, function (err, docs) {
+                        if (err) console.log(err)
+                        else {
+                            console.log(docs)
+                            console.log("success did something")
+                            res.json(docs)
+                        }
+                    })
+                })
+            } else {
+                console.log("Maybe you already have stuff")
+                res.send("why do you need more stuff")
+            }
+        })
+    })
+    // console.log("================================================================================================================================")
+    // // for (var l = 0; l < data.length; l++) {
+    // //     candI(l, data[l], function (data) {
+    // //         console.log(data)
+    // //     })
+    // // }
+    // for (var i = 0; i < data.length; i++) {
+    //     promises.push(checkAndInsert(i, data[i]))
+    // }
+    // var docus=[]
+    // console.log("HERE OPEN PROMISES")
+    // Promise.all(promises).then(function (message) {
+
+    //     // console.log(message)
+    //     console.log("DONE WITH PROMISES")
+    //     // res.redirect("/all")
+    // }).catch(function (err) {
+    //     console.log(err)
+    //     console.log("<<<<<<<<<<<<<<<<<<<<<<<<DONE>>>>>>>>>>>>>>>>>>>>>>")
+    //     // res.redirect("/all")
+    // })
+
+
+
+    // db.Book.insertMany(data, {ordered:false}, function (error, resBookData) {
+    //     if (error) {
+    //         console.log("IN ERROR")
+    //         console.log(error)
+    //         // res.redirect("/all")
+    //     } else {
+    //         console.log("something happened!!!!")
+    //         console.log(resBookData)
+    //         res.redirect("/all")
+    //     }
+    // })
+    //         })
+    //     })
+
+    // })
+
+    // function candI(val, bookDoc, cb) {
+    //     db.Book.find({
+    //         title: bookDoc.title
+    //     }, function (err, dc) {
+    //         if (err) {
+    //             console.log(err);
+    //             cb("error")
+    //         } else {
+    //             console.log(val)
+    //             console.log(dc)
+    //             if (dc.length === 0) {
+    //                 db.Book.create(bookDoc, function (e, d) {
+    //                     if (e) cb(e)
+    //                     else cb(d)
+    //                 })
+    //             } else
+    //                 cb(dc)
+    //         }
+    //     })
+    // }
+
+    function checkAndInsert(val, bookDoc, cb) {
+        var promise = new Promise(function (resolve, reject) {
+
+            db.Book.findOne({
+                title: bookDoc.title,
+                // author: bookDoc.author
+                // imgSrc: bookDoc.imgSrc,
+                // price: bookDoc.price
+            }).then(function (err, doc) {
+                if (err) {
+
+                    console.log(bookDoc);
+                    reject("something went wrong")
+                } else if (doc != undefined && doc.length === 1) {
+                    console.log(val)
+                    // console.log(doc)
+                    resolve("Document exisits!!!" + val)
                 } else {
-                    console.log(result)
-                    // db.Book.find({})
-                    //     .then(function (bookDocs) {
-                    //         res.json(bookDocs)
-                    //     })
-                    //     .catch(function (err) {
-                    //         res.json(err)
-                    //     });
-
-                    res.json(result)
+                    //       if (doc.length === 0) {
+                    // db.Book.create(bookDoc, function (e, d) {
+                    //     if (e) console.log(e)
+                    //     console.log(val)
+                    //     console.log(d);
+                    // console.log("*****************************************************************************************************************************************")
+                    resolve("NONE FOUND")
                 }
-            });
 
+                // } else {
+                //     reject("no document inserted: " + val)
+                // }
+            })
+        })
+        return promise
+    }
 
+    app.get("/all", function (req, res) {
+        db.Book.find({}, function (err, bookDocs) {
+            console.log("GET ALL:results received")
+            // console.log(bookDocs)
+            // res.json(bookDocs)
+            console.log("Using Render!!")
+            res.render('books', {
+                books: bookDocs
+              });
+        })
     })
 
 
     app.get('/example/b', function (req, res, next) {
         console.log('the response will be sent by the next function ...')
         next()
-      }, function (req, res) {
-          console.log("this will be executed")
+    }, function (req, res) {
+        console.log("this will be executed")
         res.send('Hello from B!')
-      })
+    })
 
     app.get("/scrapeSOF", function (req, res) {
         var cheerio = require("cheerio");
@@ -178,7 +269,7 @@ module.exports = function (app, db) {
             res.json(results)
         });
 
-        
+
 
     });
 
