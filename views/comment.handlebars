@@ -1,16 +1,53 @@
 <div class="jumbotron">
-<h5>
-{{#each users}}
-  <li> <h2> Registered User Name:
-    {{ firstName}}  {{lastName}}</li></h2>
-   <ul>
-    {{#each Users}}
-    <h4>
-       <li> Full Name: {{fullName}} <br>
-            Type: {{userType}}
-        </li> </h4> 
-    {{/each}}
-    </ul>
-{{/each}}
-</ul>
+    <h5> Hello {{value}}</h5>
 </div>
+<div class="container row">
+
+    <div class="col-md-3 col-lg-3">
+        <img src={{imgSrc}} alt=${{title}} height='218' width='218'>
+    </div>
+
+    <div class="col-md-7 col-lg-7">
+        <div class="row">
+            <h5>
+                <span>
+                    <strong>{{title}}</strong>
+                </span>
+            </h5>
+        </div>
+        <div class="row">
+            <h5>
+                <span>Author(s): {{author}}</span>
+            </h5>
+        </div>
+        <div class="row">
+            <h5>
+                <span>Price: {{price}}</span>
+            </h5>
+        </div>
+        <br>
+        <h4>Reviews:</h4>
+        {{#each reviews}}
+        <div class="row">
+
+            <div class="col-md-9 col-lg-9">
+                <h5>{{review}}</h5>
+            </div>
+            <div class="col-md-3 col-lg-3">
+                <a class="btn btn-primary" id={{_id}} data-bookId={{../_id}} href="/delReview/{{_id}}/{{../_id}}" role="button">X</a>
+            </div>
+
+        </div>
+        <br> {{/each}}
+        <div class="container row">
+            <form action="/submit/{{_id}}" method="post">
+                <h4>Write a review!</h4>
+                <textarea type="text" name="body"></textarea>
+                <input type="submit">
+            </form>
+        </div>
+    </div>
+</div>
+
+<br>
+<br>

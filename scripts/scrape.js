@@ -41,6 +41,8 @@ module.exports = function scrapeAmazon(cb) {
                 var title = lI[i].querySelector("img").getAttribute('alt')
                 var price =
                     ((lI[i].querySelector(".sx-price-whole") == null) ? `$0` : `$${lI[i].querySelector(".sx-price-whole").innerHTML}`);
+                var link=lI[i].querySelector("img").parentElement.getAttribute('href')
+                console.log(`LINK: >>> ${link}`)
                 var spans = lI[i].querySelectorAll(".a-color-secondary")
                 var author = '';
                 var p = ((spans[2] == null) ? "" : (spans[2].parentNode))
@@ -61,8 +63,9 @@ module.exports = function scrapeAmazon(cb) {
                     results.push({
                         imgSrc: imgSrc,
                         title: title,
+                        link:link,
                         price: price,
-                        author: author
+                        author: author                        
                     })
             }
             return (results);
@@ -74,7 +77,7 @@ module.exports = function scrapeAmazon(cb) {
                 cb(error);
             } else {
                 console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<DONE SCRAPING>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-                // console.log(result)
+                console.log(result)
                 cb(result);
             }
         });

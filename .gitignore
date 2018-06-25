@@ -6,3 +6,4 @@ package-lock.json
 
 # misc
 .DS_Store
+/public/assets/js/code.js

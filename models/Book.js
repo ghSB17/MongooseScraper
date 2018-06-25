@@ -16,21 +16,24 @@ var BookSchema = new Schema({
     type: String,
     required: true
   },
+  link: {
+    type: String,
+    required: true
+  },
   imgSrc: {
-      type: String
+    type: String
   },
   price: {
-      type: String
+    type: String
   },
+
   // `Comments` is an array that stores ObjectIds
   // The ref property links these ObjectIds to the Comment model
   // This allows us to populate the Book with any associated Comments
-  Comments: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "Comment"
-    }
-  ]
+  reviews: [{
+    type: Schema.Types.ObjectId,
+    ref: "Comment"
+  }]
 });
 
 // This creates our model from the above schema, using mongoose's model method
